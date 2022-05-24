@@ -1,0 +1,11 @@
+{
+    "server": {
+        "host_name": "localhost",
+        "port": 8082
+    },
+    "azure": {
+        "microsoft_login_url": "login.microsoftonline.com",
+        "client_id": "3348d99a-e471-497a-a77d-c1e457d25e31",
+        "scope": "Notes.Read Notes.Read.All openid User.Read"
+    }
+}
