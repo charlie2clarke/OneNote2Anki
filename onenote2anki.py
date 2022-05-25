@@ -14,17 +14,26 @@ def on_authorise_success(authorisation_code: str, csrf_state: str) -> None:
 def on_token_success(
     token_type: str, scope: str, expires_in: int, access_token: str
 ) -> None:
-    logging.info("token received")
+    logging.info("token received: {}".format(access_token))
     token = Token(token_type, scope, expires_in, access_token)
     AzureClient.token = token
-    logging.info(AzureClient.token)
+    initialise()
+
+
+def initialise() -> None:
+    logging.info("initialise")
+    notebooks = AzureClient.get_notebooks()
+    sections = AzureClient.get_sections(notebooks[0].id)
+    pages = AzureClient.get_pages(sections[0].id)
+    logging.info("we made it")
 
 
 def run() -> None:
     logging.basicConfig(level=logging.INFO)
     setting_setup()
 
-    # server setup
+    # see https://docs.microsoft.com/en-us/graph/auth-v2-user for authorisation workflow.
+    # on_authorise_success will be called following a redirected GET request to the AzureAuthoriseServer
     server = AzureAuthoriseServer(
         server_setting.host_name,
         server_setting.port,
@@ -42,6 +51,7 @@ def run() -> None:
         server.close()
         logging.info("Server stopped.")
 
+    # on_token_success will be called-back during the last stage of authentication.
     AzureClient.setup(
         "http://{}:{}".format(server_setting.host_name, server_setting.port),
         azure_setting.client_id,
