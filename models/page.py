@@ -5,9 +5,5 @@ from dataclasses import dataclass
 @dataclass
 class Page:
     id: str
-    name: str
-    is_default: bool
+    title: str
     last_modified_date_time: datetime
-    notebook_id: str
-    section_id: str
-    content: str

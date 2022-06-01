@@ -24,7 +24,7 @@ class AzureHandlerServer(BaseHTTPRequestHandler):
     on_authorise_sucess = None
 
     def _set_response(self):
-        self.send_response(200)
+        self.send_response(200, "Authorisation success! Please return back to Anki.")
         self.send_header("Content-type", "text/html")
         self.end_headers()
 

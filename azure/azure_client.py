@@ -128,7 +128,7 @@ class AzureClient:
         )
 
     @classmethod
-    def _get(self, url: str) -> any:
+    def _get(self, url: str) -> bytes:
         headers = {
             "Authorization": "Bearer {}".format(AzureClient.token.access_token),
         }
@@ -136,14 +136,14 @@ class AzureClient:
         response = AzureClient.ms_graph.getresponse()
         if response.status != 200:
             raise Exception("Error getting {}".format(url))
-        res_bytes = response.read()
-        return json.loads(res_bytes)
+        return response.read()
 
     @classmethod
     @requires_auth
     def get_notebooks(self) -> List[Notebook]:
         try:
-            notebooks_json = self._get("/v1.0/me/onenote/notebooks")
+            notebooks_bytes = self._get("/v1.0/me/onenote/notebooks")
+            notebooks_json = json.loads(notebooks_bytes)
         except Exception as e:
             raise Exception("Error getting notebooks: {}".format(e))
 
@@ -168,9 +168,10 @@ class AzureClient:
     @requires_auth
     def get_sections(self, notebook_id: str) -> List[Section]:
         try:
-            sections_json = self._get(
+            sections_bytes = self._get(
                 "/v1.0/me/onenote/notebooks/{}/sections".format(notebook_id)
             )
+            sections_json = json.loads(sections_bytes)
         except Exception as e:
             raise Exception("Error getting sections: {}".format(e))
 
@@ -195,9 +196,10 @@ class AzureClient:
     @requires_auth
     def get_pages(self, section_id: str) -> List[Page]:
         try:
-            pages_json = self._get(
+            pages_bytes = self._get(
                 "/v1.0/me/onenote/sections/{}/pages".format(section_id)
             )
+            pages_json = json.loads(pages_bytes)
         except Exception as e:
             raise Exception("Error getting pages: {}".format(e))
 
@@ -206,13 +208,23 @@ class AzureClient:
             pages.append(
                 Page(
                     id=page_json["id"],
-                    name=page_json["displayName"],
-                    is_default=page_json["isDefault"],
+                    title=page_json["title"],
                     last_modified_date_time=datetime.datetime.strptime(
-                        page_json["lastModifiedDateTime"], "%Y-%m-%dT%H:%M:%S.%fZ"
+                        page_json["lastModifiedDateTime"], "%Y-%m-%dT%H:%M:%SZ"
                     ),
-                    content_url=page_json["contentUrl"],
                 )
             )
 
         return pages
+
+    @classmethod
+    @requires_auth
+    def get_content(self, page_id: str) -> str:
+        try:
+            content_bytes = self._get(
+                "/v1.0/me/onenote/pages/{}/content".format(page_id)
+            )
+        except Exception as e:
+            raise Exception("Error getting content: {}".format(e))
+
+        return content_bytes.decode("utf-8")
